@@ -13,7 +13,7 @@
 
         <!-- Logo & Title -->
         <div class="flex items-center gap-1">
-            <img src="{{ asset('build/assets/pets.png') }}"
+            <img src="{{ asset('images/pets.png') }}"
                  alt="Logo Kucing"
                  class="w-7 h-7 object-contain">
 
@@ -40,7 +40,7 @@
 
 <!-- FOOTER -->
 <footer class="text-center text-sm text-slate-400 py-6">
-    © {{ date('Y') }} Sistem Pakar Diagnosis Penyakit Kulit Kucing by PUPUT
+    © {{ date('Y') }} Sistem Pakar Diagnosis Penyakit Kulit Kucing
 </footer>
 
 </body>

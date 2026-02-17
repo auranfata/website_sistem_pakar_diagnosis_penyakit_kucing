@@ -21,7 +21,7 @@
     </div>
 
    <div class="overflow-hidden shadow-xl rounded-full w-64 h-64 mx-auto">
-    <img src="build/assets/kucing.jpg"
+    <img src="images/kucing.jpg"
          alt="Kucing"
          class="w-full h-full object-cover">
 </div>
