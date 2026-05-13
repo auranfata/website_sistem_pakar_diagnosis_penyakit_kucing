@@ -6,108 +6,119 @@ use Illuminate\Http\Request;
 
 class DiagnosaController extends Controller
 {
+    // MASTER DATA
+    private array $gejalaMaster = [
+    'G01' => 'Gatal berlebihan',
+    'G02' => 'Sering menggaruk area tertentu',
+    'G03' => 'Terdapat luka atau keropeng',
+    'G04' => 'Kulit kemerahan atau iritasi',
+    'G05' => 'Bulu rontok membentuk pola tertentu',
+    'G06' => 'Kulit bersisik atau berketombe',
+    'G07' => 'Rambut menipis',
+    'G08' => 'Kulit berbau tidak sedap',
+    'G09' => 'Kulit tampak lembab atau bernanah',
+    'G10' => 'Kucing sering menjilat area tertentu',
+];
+   private array $penyakit = [
+
+    'Scabies (Kudis Kucing)' => [
+        'gejala' => [
+            'G01' => 0.4, // gatal berlebihan (sangat penting)
+            'G02' => 0.3, // sering menggaruk
+            'G03' => 0.3, // luka / keropeng
+        ],
+        'deskripsi' => 'Penyakit kulit akibat tungau yang menyebabkan gatal hebat dan luka.',
+        'penanganan' => [
+            'Isolasi kucing',
+            'Sampo anti tungau',
+            'Bersihkan kandang',
+            'Konsultasi dokter hewan'
+        ]
+    ],
+
+    'Jamur Kulit (Ringworm)' => [
+        'gejala' => [
+            'G05' => 0.4, // bulu rontok pola
+            'G06' => 0.35, // bersisik
+            'G07' => 0.25, // rambut menipis
+        ],
+        'deskripsi' => 'Infeksi jamur yang menyebabkan kerontokan dan kulit bersisik.',
+        'penanganan' => [
+            'Obat antijamur',
+            'Jaga area tetap kering',
+            'Sterilisasi kandang'
+        ]
+    ],
+
+    'Dermatitis Alergi' => [
+        'gejala' => [
+            'G01' => 0.35,
+            'G04' => 0.35,
+            'G10' => 0.3,
+        ],
+        'deskripsi' => 'Reaksi alergi terhadap makanan atau lingkungan.',
+        'penanganan' => [
+            'Hindari alergen',
+            'Obat anti alergi',
+            'Perawatan kulit'
+        ]
+    ],
+];
+
     public function index()
     {
-        $gejala = [
-            'G01' => 'Gatal berlebihan',
-            'G02' => 'Bulu rontok di beberapa bagian',
-            'G03' => 'Kulit kemerahan atau iritasi',
-            'G04' => 'Terdapat luka atau keropeng',
-            'G05' => 'Kulit bersisik atau berketombe',
-            'G06' => 'Rambut menipis',
-            'G07' => 'Sering menggaruk area tertentu',
-            'G08' => 'Kulit berbau tidak sedap',
-            'G09' => 'Kulit tampak lembab atau bernanah',
-        ];
-
-        return view('diagnosa', compact('gejala'));
+        return view('diagnosa', [
+            'gejala' => $this->gejalaMaster
+        ]);
     }
 
     public function proses(Request $request)
-{
-    $request->validate([
-        'gejala' => 'required|array|min:1'
-    ]);
+    {
+        $request->validate([
+            'gejala' => 'required|array|min:1'
+        ]);
 
-    // MASTER GEJALA (kode => nama)
-    $gejalaMaster = [
-        'G01' => 'Gatal berlebihan',
-        'G02' => 'Bulu rontok di beberapa bagian',
-        'G03' => 'Kulit kemerahan atau iritasi',
-        'G04' => 'Terdapat luka atau keropeng',
-        'G05' => 'Kulit bersisik atau berketombe',
-        'G06' => 'Rambut menipis',
-        'G07' => 'Sering menggaruk area tertentu',
-        'G08' => 'Kulit berbau tidak sedap',
-        'G09' => 'Kulit tampak lembab atau bernanah',
-    ];
+        $dipilihKode = $request->gejala;
 
-    $dipilihKode = $request->gejala;
+        // Konversi ke nama gejala
+        $dipilihNama = array_map(
+            fn($kode) => $this->gejalaMaster[$kode] ?? '',
+            $dipilihKode
+        );
 
-    // UBAH KODE → TEKS
-    $dipilihNama = [];
-    foreach ($dipilihKode as $kode) {
-        if (isset($gejalaMaster[$kode])) {
-            $dipilihNama[] = $gejalaMaster[$kode];
+       $hasilAkhir = [
+    'nama' => 'Tidak terdeteksi penyakit spesifik',
+    'keyakinan' => 0,
+    'deskripsi' => '',
+    'penanganan' => []
+];
+
+foreach ($this->penyakit as $nama => $data) {
+
+    $totalBobot = array_sum($data['gejala']);
+    $bobotCocok = 0;
+
+    foreach ($data['gejala'] as $kode => $bobot) {
+        if (in_array($kode, $dipilihKode)) {
+            $bobotCocok += $bobot;
         }
     }
 
-    // RULE BASED
-    $rules = [
-        'Scabies' => ['G01', 'G04', 'G07'],
-        'Dermatitis Alergi' => ['G01', 'G03', 'G07'],
-        'Jamur Kulit' => ['G02', 'G05', 'G06'],
-        'Infeksi Bakteri' => ['G03', 'G04', 'G09'],
-        'Kutu / Parasit Kulit' => ['G01', 'G02', 'G07', 'G08'],
-    ];
+    $persen = round(($bobotCocok / $totalBobot) * 100);
 
-    $penanganan = [
-        'Scabies' => [
-            'Mandikan dengan sampo anti tungau',
-            'Isolasi sementara',
-            'Bersihkan kandang',
-            'Konsultasi dokter hewan'
-        ],
-        'Dermatitis Alergi' => [
-            'Hindari alergen',
-            'Gunakan obat anti alergi',
-            'Jaga kebersihan kulit'
-        ],
-        'Jamur Kulit' => [
-            'Gunakan obat antijamur',
-            'Jaga area tetap kering',
-            'Sterilisasi kandang'
-        ],
-        'Infeksi Bakteri' => [
-            'Bersihkan luka',
-            'Gunakan antibiotik',
-            'Pantau kondisi'
-        ],
-        'Kutu / Parasit Kulit' => [
-            'Obat anti parasit',
-            'Mandikan rutin',
-            'Cuci alas tidur'
-        ],
-    ];
-
-    $hasil = 'Tidak terdeteksi penyakit spesifik';
-    $keyakinan = 0;
-
-    foreach ($rules as $penyakit => $ruleGejala) {
-        $cocok = count(array_intersect($dipilihKode, $ruleGejala));
-        $persen = round(($cocok / count($ruleGejala)) * 100);
-
-        if ($persen > $keyakinan) {
-            $keyakinan = $persen;
-            $hasil = $penyakit;
-        }
+    if ($persen > $hasilAkhir['keyakinan']) {
+        $hasilAkhir = [
+            'nama' => $nama,
+            'keyakinan' => $persen,
+            'deskripsi' => $data['deskripsi'],
+            'penanganan' => $data['penanganan']
+        ];
     }
-
-    return view('hasil', [
-        'hasil' => $hasil,
-        'keyakinan' => $keyakinan,
-        'dipilih' => $dipilihNama,
-        'penanganan' => $penanganan[$hasil] ?? []
-    ]);
 }
+
+        return view('hasil', [
+            'hasil' => $hasilAkhir,
+            'dipilih' => $dipilihNama
+        ]);
+    }
 }
