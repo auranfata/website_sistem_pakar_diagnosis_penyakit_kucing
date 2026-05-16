@@ -1,103 +1,80 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+<div class="max-w-4xl mx-auto bg-white p-10 rounded-3xl shadow-xl border border-sky-50 mt-6">
+    <div class="text-center mb-10">
+        <h2 class="text-4xl font-black text-sky-700 mb-2 tracking-tight">Analisis Sistem Selesai</h2>
+        <p class="text-slate-500 font-medium">Berikut adalah hasil probabilitas berdasarkan algoritma pembobotan pakar.</p>
+    </div>
 
-    {{-- Judul --}}
-    <h2 class="text-3xl font-bold text-center text-sky-600 mb-2">
-        Hasil Diagnosa
-    </h2>
-    <p class="text-center text-slate-500 mb-8">
-        Berdasarkan gejala yang Anda pilih, berikut adalah hasil analisis sistem.
-    </p>
-
-    {{-- Card Hasil Utama --}}
-    <div class="bg-sky-50 border border-sky-200 rounded-xl p-6 mb-8">
-        <h3 class="text-xl font-semibold text-sky-700 mb-2">
-            {{ $hasil['nama'] }}
-        </h3>
-
-        <p class="text-slate-600 mb-4">
-            {{ $hasil['deskripsi'] ?: 'Tidak tersedia deskripsi untuk penyakit ini.' }}
-        </p>
-
-        {{-- Tingkat Keyakinan --}}
-        <div class="mb-4">
-            <div class="flex justify-between mb-1">
-                <span class="text-sm font-medium text-sky-700">
-                    Tingkat Keyakinan
-                </span>
-                <span class="text-sm font-semibold text-sky-700">
-                    {{ $hasil['keyakinan'] }}%
-                </span>
+    <div class="bg-gradient-to-br from-sky-400 to-sky-500 rounded-2xl p-8 text-white mb-8 shadow-lg shadow-sky-200">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <span class="bg-white/25 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest backdrop-blur-sm">Probabilitas Tertinggi</span>
+                <h3 class="text-3xl font-bold mt-4 tracking-wide">{{ $hasilUtama['nama'] }}</h3>
             </div>
-            <div class="w-full bg-sky-100 rounded-full h-3">
-                <div class="bg-sky-500 h-3 rounded-full"
-                     style="width: {{ $hasil['keyakinan'] }}%">
-                </div>
+            <div class="text-right">
+                <span class="text-6xl font-black tracking-tighter">{{ $hasilUtama['keyakinan'] }}%</span>
+                <p class="text-sm text-sky-50 font-semibold mt-1">Tingkat Keyakinan</p>
             </div>
         </div>
 
-        {{-- Catatan --}}
-        <p class="text-xs text-slate-500 mt-3">
-            * Persentase menunjukkan tingkat kecocokan antara gejala yang dipilih dengan aturan penyakit.
-        </p>
+        <div class="w-full bg-sky-700/20 rounded-full h-4 mb-6 overflow-hidden p-0.5">
+            <div class="bg-white h-3 rounded-full shadow-sm" style="width: {{ $hasilUtama['keyakinan'] }}%"></div>
+        </div>
+
+        <p class="text-sky-50 leading-relaxed font-medium">{{ $hasilUtama['deskripsi'] }}</p>
     </div>
 
-    {{-- Gejala Dipilih --}}
-    <div class="mb-8">
-        <h4 class="text-lg font-semibold text-slate-700 mb-3">
-            Gejala yang Dipilih
-        </h4>
+    <div class="grid md:grid-cols-2 gap-6 mb-10">
+        <div class="border border-sky-100 bg-sky-50/50 rounded-2xl p-6">
+            <h4 class="font-bold text-sky-800 mb-4 flex items-center uppercase tracking-wide text-sm">
+                Gejala Terdeteksi
+            </h4>
+            <ul class="space-y-3">
+                @foreach ($dipilih as $g)
+                    <li class="flex items-start text-sm text-slate-600 font-medium">
+                        <span class="w-2 h-2 bg-sky-400 rounded-full mr-3 mt-1.5 shrink-0"></span>
+                        <span>{{ $g }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
 
-        <ul class="grid sm:grid-cols-2 gap-3">
-            @foreach ($dipilih as $gejala)
-                <li class="flex items-center gap-2 bg-slate-50 border rounded-lg px-4 py-2">
-                    <span class="w-2 h-2 bg-sky-400 rounded-full"></span>
-                    <span class="text-slate-600">{{ $gejala }}</span>
-                </li>
-            @endforeach
-        </ul>
+        <div class="border border-emerald-100 bg-emerald-50/50 rounded-2xl p-6">
+            <h4 class="font-bold text-emerald-800 mb-4 flex items-center uppercase tracking-wide text-sm">
+                Saran Tindakan Medis
+            </h4>
+            <ul class="space-y-3">
+                @foreach ($hasilUtama['penanganan'] as $p)
+                    <li class="flex items-start text-sm text-emerald-700 font-medium">
+                        <span class="font-bold text-emerald-500 mr-3">✓</span>
+                        <span>{{ $p }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
     </div>
 
-    {{-- Penanganan --}}
-    @if (!empty($hasil['penanganan']))
     <div class="mb-10">
-        <h4 class="text-lg font-semibold text-slate-700 mb-3">
-            Saran Penanganan Awal
-        </h4>
-
-        <ul class="space-y-2">
-            @foreach ($hasil['penanganan'] as $item)
-                <li class="flex items-start gap-3">
-                    <span class="text-sky-500 mt-1">✔</span>
-                    <span class="text-slate-600">{{ $item }}</span>
-                </li>
+        <h4 class="text-slate-400 font-bold text-xs uppercase tracking-widest mb-4">Kemungkinan Lain (Differential Diagnosis)</h4>
+        <div class="space-y-3">
+            @foreach ($alternatif as $alt)
+                <div class="flex justify-between items-center p-5 bg-white border border-slate-100 rounded-xl hover:border-sky-200 transition duration-200">
+                    <span class="font-bold text-slate-600">{{ $alt['nama'] }}</span>
+                    <span class="text-sky-500 font-mono font-bold text-lg">{{ $alt['keyakinan'] }}%</span>
+                </div>
             @endforeach
-        </ul>
-    </div>
-    @endif
-
-    {{-- Disclaimer --}}
-    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8">
-        <p class="text-sm text-yellow-700">
-            ⚠️ Hasil diagnosa ini bersifat <strong>edukatif dan pendukung keputusan</strong>.
-            Untuk penanganan medis yang tepat, disarankan berkonsultasi langsung dengan dokter hewan.
-        </p>
+        </div>
     </div>
 
-    {{-- Aksi --}}
-    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/diagnosa"
-           class="bg-sky-500 hover:bg-sky-600 text-white px-6 py-3 rounded-lg text-center font-semibold">
+    <div class="flex flex-col sm:flex-row gap-4">
+        <a href="/diagnosa" class="flex-1 bg-sky-500 text-white text-center py-4 rounded-xl font-bold text-lg hover:bg-sky-600 transition shadow-lg shadow-sky-100">
             Diagnosa Ulang
         </a>
-
-        <a href="/penyakit"
-           class="bg-white border border-sky-300 hover:bg-sky-50 text-sky-600 px-6 py-3 rounded-lg text-center font-semibold">
-            Lihat Daftar Penyakit
+        <a href="/" class="flex-1 bg-white border-2 border-sky-100 text-sky-600 text-center py-4 rounded-xl font-bold text-lg hover:bg-sky-50 transition">
+            Kembali ke Beranda
         </a>
     </div>
-
 </div>
 @endsection
