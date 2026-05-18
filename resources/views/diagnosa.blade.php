@@ -20,7 +20,7 @@
     <div class="text-center mb-10">
         <h2 class="text-3xl font-bold text-sky-600 mb-2">Pilih Gejala yang Terlihat</h2>
         <p class="text-slate-500">Klik pada kartu gejala yang sesuai dengan kondisi fisik kucing Anda.</p>
-    </div>
+    </dijv>
 
     <form id="form-diagnosa" method="POST" action="/diagnosa/proses">
         @csrf
